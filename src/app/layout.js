@@ -12,7 +12,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "Skyline-Agent:Personal Assistant",
+  title: "Frenq AI: Your Personal Assistant",
   description: "Personal Assistant",
 };
 
