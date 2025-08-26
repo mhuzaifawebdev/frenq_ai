@@ -226,15 +226,15 @@ const GmailWidget = () => {
           }
           
           // Debug logging for date issues
-          if (process.env.NODE_ENV === 'development') {
-            console.log('Email date debug:', {
-              originalDate: email.date,
-              receivedDateTime: email.receivedDateTime,
-              internalDate: email.internalDate,
-              finalDate: emailDate,
-              emailId: email.id
-            });
-          }
+          // if (process.env.NODE_ENV === 'development') {
+          //   console.log('Email date debug:', {
+          //     originalDate: email.date,
+          //     receivedDateTime: email.receivedDateTime,
+          //     internalDate: email.internalDate,
+          //     finalDate: emailDate,
+          //     emailId: email.id
+          //   });
+          // }
           
           const emailData = {
             id: email.id || index,
