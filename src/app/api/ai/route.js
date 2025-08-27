@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 
-const AI_WEBHOOK_URL =
-  "http://localhost:5678/webhook-test/439a0055-142d-4406-b5be-75b058eeab52";
+const AI_WEBHOOK_URL = process.env.NEXT_PUBLIC_AI_WEBHOOK_URL;
 
 export async function POST(request) {
   try {

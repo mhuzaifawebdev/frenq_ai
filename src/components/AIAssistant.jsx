@@ -3,8 +3,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { ChevronLeft, Menu, Send, Mic, Paperclip } from "lucide-react";
 
 // Configuration for the AI webhook
-const AI_WEBHOOK_URL =
-  "http://localhost:5678/webhook-test/439a0055-142d-4406-b5be-75b058eeab52";
+const AI_WEBHOOK_URL = process.env.NEXT_PUBLIC_AI_WEBHOOK_URL
 const USE_PROXY = false; // Set to true if you encounter CORS issues
 
 const ChatAssistance = () => {

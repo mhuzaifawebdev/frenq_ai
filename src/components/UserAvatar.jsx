@@ -5,6 +5,8 @@ import Image from "next/image";
 const UserAvatar = ({ user, size = 56 }) => {
   const [imageError, setImageError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [retryCount, setRetryCount] = useState(0);
+  const maxRetries = 2;
 
   // Memoize the image URL to prevent unnecessary re-computations
   const optimizedImageUrl = useMemo(() => {
@@ -14,10 +16,18 @@ const UserAvatar = ({ user, size = 56 }) => {
       console.log("UserAvatar: Processing image URL:", rawUrl);
     }
     
-    if (!rawUrl) {
+    if (!rawUrl || typeof rawUrl !== 'string') {
       if (process.env.NODE_ENV === 'development') {
-        console.log("UserAvatar: No URL provided");
+        console.log("UserAvatar: No valid URL provided", { rawUrl, type: typeof rawUrl });
       }
+      return null;
+    }
+    
+    // Basic URL validation
+    try {
+      new URL(rawUrl);
+    } catch (urlError) {
+      console.error("UserAvatar: Invalid URL format:", rawUrl, urlError);
       return null;
     }
     
@@ -43,17 +53,30 @@ const UserAvatar = ({ user, size = 56 }) => {
     if (optimizedImageUrl) {
       setImageError(false);
       setIsLoading(true);
+      setRetryCount(0);
     }
   }, [optimizedImageUrl]);
 
   const handleImageError = (e) => {
-    console.error("Avatar image failed to load:", {
-      src: e.target.src,
-      originalUrl: optimizedImageUrl,
-      error: e.type
-    });
-    setImageError(true);
-    setIsLoading(false);
+    // Only log in development and use console.warn to avoid Next.js error overlay
+    if (process.env.NODE_ENV === 'development') {
+      console.warn("Avatar image failed to load:", {
+        url: optimizedImageUrl,
+        retry: `${retryCount + 1}/${maxRetries}`
+      });
+    }
+    
+    // Try to retry if we haven't exceeded max retries
+    if (retryCount < maxRetries) {
+      setRetryCount(prev => prev + 1);
+      // Force a re-render by temporarily clearing and setting the image
+      setTimeout(() => {
+        setIsLoading(true);
+      }, 1000);
+    } else {
+      setImageError(true);
+      setIsLoading(false);
+    }
   };
 
   const handleImageLoad = () => {
@@ -75,7 +98,7 @@ const UserAvatar = ({ user, size = 56 }) => {
   }
 
   // If no picture or image failed to load, show initials
-  if (!optimizedImageUrl || imageError) {
+  if (!optimizedImageUrl || (imageError && retryCount >= maxRetries)) {
     return (
       <div 
         className="bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center shadow-lg ring-2 ring-gray-700/50"
@@ -102,6 +125,7 @@ const UserAvatar = ({ user, size = 56 }) => {
         </div>
       )}
       <Image
+        key={`avatar-${optimizedImageUrl}-${retryCount}`}
         src={optimizedImageUrl}
         alt={user?.name || user?.email || "User"}
         width={size}
