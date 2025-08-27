@@ -2,7 +2,7 @@
 
 export const config = {
   // Backend API URL
-  BACKEND_URL: process.env.NEXT_PUBLIC_BACKEND_URL,
+  BACKEND_URL: "https://skyline-assistant-backend.vercel.app",
 
   // API endpoints
   endpoints: {
