@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { ChevronLeft, Menu, Send, Mic, Paperclip } from "lucide-react";
 
 // Configuration for the AI webhook
-const AI_WEBHOOK_URL = process.env.NEXT_PUBLIC_AI_WEBHOOK_URL
+const AI_WEBHOOK_URL = process.env.NEXT_PUBLIC_AI_WEBHOOK_URL;
 const USE_PROXY = false; // Set to true if you encounter CORS issues
 
 const ChatAssistance = () => {
@@ -320,46 +320,55 @@ const ChatAssistance = () => {
 
       {/* Input Area */}
       <div className="p-4 bg-[#1c1c1c]/50">
-        <div className="flex items-center space-x-2 bg-[#2a2a2a] rounded-xl px-3 py-2 border border-gray-700/50">
+        <div className="flex items-start space-x-2 bg-[#2a2a2a] rounded-xl px-3 py-2 border border-gray-700/50">
           {/* Model Badge */}
-          <div className="text-xs text-gray-400 font-medium">GPT-4o</div>
+          <div className="text-xs text-gray-400 font-medium pt-1">FrenqAI</div>
 
           {/* Divider */}
-          <div className="w-px h-4 bg-gray-600"></div>
+          <div className="w-px h-4 bg-gray-600 mt-1 flex-shrink-0"></div>
 
           {/* Attachment Button */}
-          <button className="p-1 text-gray-400 hover:text-gray-300 transition-colors">
+          {/* <button className="p-1 text-gray-400 hover:text-gray-300 transition-colors">
             <Paperclip className="w-4 h-4" />
-          </button>
+          </button> */}
 
           {/* Input */}
-          <input
-            type="text"
+          <textarea
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            onKeyUp={handleKeyPress}
+            onKeyDown={handleKeyPress}
             placeholder={
-              isTyping
-                ? "AI is processing..."
-                : "Ask me to schedule, call, email, or do anything..."
+              isTyping ? "processing..." : "Ask me to schedule or email"
             }
             disabled={isTyping}
-            className="flex-1 bg-transparent text-white placeholder-gray-500 text-sm focus:outline-none min-w-0 disabled:opacity-50"
+            rows={1}
+            className="flex-1 bg-transparent text-white placeholder-gray-500 text-sm focus:outline-none min-w-0 disabled:opacity-50 resize-none overflow-y-auto max-h-32"
+            style={{
+              minHeight: "20px",
+              lineHeight: "20px",
+              paddingTop: "2px",
+            }}
+            onInput={(e) => {
+              // Auto-resize the textarea
+              e.target.style.height = "auto";
+              e.target.style.height =
+                Math.min(e.target.scrollHeight, 128) + "px";
+            }}
           />
 
           {/* Mic Button */}
-          <button
+          {/* <button
             className="p-1 text-gray-400 hover:text-gray-300 transition-colors disabled:opacity-50"
             disabled={isTyping}
           >
             <Mic className="w-4 h-4" />
-          </button>
+          </button> */}
 
           {/* Send Button */}
           <button
             onClick={handleSendMessage}
             disabled={!inputValue.trim() || isTyping}
-            className={`p-1.5 rounded-full transition-all duration-200 ${
+            className={`p-1.5 rounded-full transition-all duration-200 flex-shrink-0 ${
               inputValue.trim() && !isTyping
                 ? "bg-blue-600 hover:bg-blue-500 text-white"
                 : "bg-gray-700/50 text-gray-600 cursor-not-allowed"
