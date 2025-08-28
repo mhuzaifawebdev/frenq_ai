@@ -133,21 +133,20 @@ const GmailWidget = () => {
     const diffTime = Math.abs(now - date);
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-    try {
-      if (diffDays === 1) {
-        return date.toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        });
-      } else if (diffDays <= 7) {
-        return date.toLocaleDateString([], { weekday: "short" });
-      } else {
-        return date.toLocaleDateString([], { month: "short", day: "numeric" });
-      }
-    } catch (error) {
-      console.error("Date formatting error:", error, "for date:", dateString);
-      return "Unknown";
-    }
+   try {
+  if (diffDays === 1) {
+     return date.toLocaleString([], { weekday: 'short', hour: '2-digit', minute: '2-digit' });
+
+  } else if (diffDays <= 7) {
+    return date.toLocaleString([], { weekday: 'short', hour: '2-digit', minute: '2-digit' });
+
+  } else {
+    return date.toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  }
+} catch (error) {
+  console.error("❌ Date formatting error:", error, "for date:", dateString);
+  return "Unknown";
+}
   };
 
   const truncateText = (text, maxLength = 50) => {

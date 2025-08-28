@@ -1,6 +1,8 @@
 "use client";
 import React, { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
+import { AuthService } from "../lib/auth";
+import { config } from "../lib/config";
 
 const UserAvatar = ({ user, size = 56 }) => {
   const [imageError, setImageError] = useState(false);
@@ -49,8 +51,8 @@ const UserAvatar = ({ user, size = 56 }) => {
       }
       return optimizedUrl;
     }
-
-    if (process.env.NODE_ENV === "development") {
+       
+    if (process.env.NODE_ENV === 'development') {
       console.log("UserAvatar: Using original URL:", rawUrl);
     }
     return rawUrl;
