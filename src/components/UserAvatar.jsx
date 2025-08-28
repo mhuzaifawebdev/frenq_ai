@@ -13,18 +13,21 @@ const UserAvatar = ({ user, size = 56 }) => {
   // Memoize the image URL to prevent unnecessary re-computations
   const optimizedImageUrl = useMemo(() => {
     const rawUrl = user?.profilePicture || user?.picture;
-    
-    if (process.env.NODE_ENV === 'development') {
+
+    if (process.env.NODE_ENV === "development") {
       console.log("UserAvatar: Processing image URL:", rawUrl);
     }
-    
-    if (!rawUrl || typeof rawUrl !== 'string') {
-      if (process.env.NODE_ENV === 'development') {
-        console.log("UserAvatar: No valid URL provided", { rawUrl, type: typeof rawUrl });
+
+    if (!rawUrl || typeof rawUrl !== "string") {
+      if (process.env.NODE_ENV === "development") {
+        console.log("UserAvatar: No valid URL provided", {
+          rawUrl,
+          type: typeof rawUrl,
+        });
       }
       return null;
     }
-    
+
     // Basic URL validation
     try {
       new URL(rawUrl);
@@ -32,14 +35,19 @@ const UserAvatar = ({ user, size = 56 }) => {
       console.error("UserAvatar: Invalid URL format:", rawUrl, urlError);
       return null;
     }
-    
+
     // For Google profile images, ensure we're using the right size parameter
-    if (rawUrl.includes('googleusercontent.com')) {
+    if (rawUrl.includes("googleusercontent.com")) {
       // Remove any existing size parameters and add our own
-      const baseUrl = rawUrl.split('=')[0];
+      const baseUrl = rawUrl.split("=")[0];
       const optimizedUrl = `${baseUrl}=s${size * 2}-c`;
-      if (process.env.NODE_ENV === 'development') {
-        console.log("UserAvatar: Google URL optimized from", rawUrl, "to", optimizedUrl);
+      if (process.env.NODE_ENV === "development") {
+        console.log(
+          "UserAvatar: Google URL optimized from",
+          rawUrl,
+          "to",
+          optimizedUrl
+        );
       }
       return optimizedUrl;
     }
@@ -61,16 +69,16 @@ const UserAvatar = ({ user, size = 56 }) => {
 
   const handleImageError = (e) => {
     // Only log in development and use console.warn to avoid Next.js error overlay
-    if (process.env.NODE_ENV === 'development') {
+    if (process.env.NODE_ENV === "development") {
       console.warn("Avatar image failed to load:", {
         url: optimizedImageUrl,
-        retry: `${retryCount + 1}/${maxRetries}`
+        retry: `${retryCount + 1}/${maxRetries}`,
       });
     }
-    
+
     // Try to retry if we haven't exceeded max retries
     if (retryCount < maxRetries) {
-      setRetryCount(prev => prev + 1);
+      setRetryCount((prev) => prev + 1);
       // Force a re-render by temporarily clearing and setting the image
       setTimeout(() => {
         setIsLoading(true);
@@ -83,34 +91,33 @@ const UserAvatar = ({ user, size = 56 }) => {
 
   const handleImageLoad = () => {
     setIsLoading(false);
-    if (process.env.NODE_ENV === 'development') {
+    if (process.env.NODE_ENV === "development") {
       console.log("Avatar image loaded successfully:", optimizedImageUrl);
     }
   };
-  
-  if (process.env.NODE_ENV === 'development') {
+
+  if (process.env.NODE_ENV === "development") {
     console.log("UserAvatar: Render state:", {
       hasUser: !!user,
       userPicture: user?.picture,
       profilePicture: user?.profilePicture,
       optimizedUrl: optimizedImageUrl,
       imageError,
-      isLoading
+      isLoading,
     });
   }
 
   // If no picture or image failed to load, show initials
   if (!optimizedImageUrl || (imageError && retryCount >= maxRetries)) {
     return (
-      <div 
+      <div
         className="bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center shadow-lg ring-2 ring-gray-700/50"
         style={{ width: size, height: size }}
       >
-        <span 
-          className="font-bold text-white"
-          style={{ fontSize: size * 0.4 }}
-        >
-          {user?.name?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || "U"}
+        <span className="font-bold text-white" style={{ fontSize: size * 0.4 }}>
+          {user?.name?.charAt(0)?.toUpperCase() ||
+            user?.email?.charAt(0)?.toUpperCase() ||
+            "U"}
         </span>
       </div>
     );
@@ -119,7 +126,7 @@ const UserAvatar = ({ user, size = 56 }) => {
   return (
     <div className="relative" style={{ width: size, height: size }}>
       {isLoading && (
-        <div 
+        <div
           className="absolute inset-0 bg-gray-700 rounded-full flex items-center justify-center animate-pulse"
           style={{ width: size, height: size }}
         >
@@ -133,7 +140,7 @@ const UserAvatar = ({ user, size = 56 }) => {
         width={size}
         height={size}
         className={`rounded-full object-cover shadow-lg ring-2 ring-gray-700/50 transition-opacity duration-200 ${
-          isLoading ? 'opacity-0' : 'opacity-100'
+          isLoading ? "opacity-0" : "opacity-100"
         }`}
         onError={handleImageError}
         onLoad={handleImageLoad}

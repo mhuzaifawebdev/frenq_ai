@@ -326,9 +326,7 @@ export default function SkylineApp() {
                   <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
                 </svg>
               </div>
-              <span className="text-white text-xl font-semibold">
-                FrenqAI
-              </span>
+              <span className="text-white text-xl font-semibold">FrenqAI</span>
             </div>
 
             {/* Get Started Button */}

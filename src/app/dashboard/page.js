@@ -37,9 +37,15 @@ const Dashboard = () => {
           setIsAuthenticated(true);
           const userData = AuthService.getUser();
           console.log("Dashboard: User data loaded:", userData);
-          console.log("Dashboard: Profile picture URL:", userData?.profilePicture);
+          console.log(
+            "Dashboard: Profile picture URL:",
+            userData?.profilePicture
+          );
           console.log("Dashboard: Picture field (legacy):", userData?.picture);
-          console.log("Dashboard: User object keys:", userData ? Object.keys(userData) : "No user data");
+          console.log(
+            "Dashboard: User object keys:",
+            userData ? Object.keys(userData) : "No user data"
+          );
           setUser(userData);
         } else {
           // Invalid token, redirect to home
@@ -96,7 +102,7 @@ const Dashboard = () => {
       <div className="mb-6 relative">
         {/* Background gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 via-purple-600/10 to-red-600/10 rounded-2xl blur-xl"></div>
-        
+
         {/* Main header container */}
         <div className="relative backdrop-blur-sm bg-gradient-to-r from-gray-900/80 via-gray-800/60 to-gray-900/80 border border-gray-700/50 rounded-2xl p-3 shadow-2xl">
           <div className="flex justify-between items-center">
@@ -107,7 +113,7 @@ const Dashboard = () => {
                 <UserAvatar user={user} size={56} />
                 <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-gray-800 shadow-sm animate-pulse"></div>
               </div>
-              
+
               {/* User details */}
               <div>
                 <h1 className="text-2xl font-bold bg-gradient-to-r from-white via-gray-200 to-gray-300 bg-clip-text text-transparent">
@@ -117,7 +123,6 @@ const Dashboard = () => {
                   <span className="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></span>
                   {user?.email}
                 </p>
-                
               </div>
             </div>
 
@@ -128,15 +133,25 @@ const Dashboard = () => {
             >
               <div className="absolute inset-0 bg-gradient-to-r from-red-500 to-red-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               <div className="relative flex items-center space-x-2">
-                <svg className="w-4 h-4 transition-transform group-hover:rotate-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                <svg
+                  className="w-4 h-4 transition-transform group-hover:rotate-12"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                  />
                 </svg>
                 <span className="font-medium">Sign Out</span>
               </div>
             </button>
           </div>
         </div>
-        
+
         {/* Subtle animation elements */}
         <div className="absolute top-2 left-2 w-3 h-3 bg-blue-400/30 rounded-full animate-ping delay-100"></div>
         <div className="absolute top-4 right-8 w-2 h-2 bg-purple-400/30 rounded-full animate-ping delay-300"></div>
