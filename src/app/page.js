@@ -33,7 +33,7 @@ export default function SkylineApp() {
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
     try {
-      // Redirect to Google OAuth via our API route
+      // Redirect to Google OAuth via  API route
       window.location.href = "/api/auth";
     } catch (error) {
       console.error("Authentication error:", error);
@@ -327,7 +327,7 @@ export default function SkylineApp() {
                 </svg>
               </div>
               <span className="text-white text-xl font-semibold">
-                Skyline-Agent
+                FrenqAI
               </span>
             </div>
 
