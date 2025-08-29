@@ -120,7 +120,7 @@ const CalendarWidget = () => {
           headers: { Authorization: `Bearer ${token}` },
           timeout: 10000,
         }
-      );
+      ); 
 
       if (response.data.success) {
         const fetchedEvents =
@@ -303,16 +303,6 @@ const CalendarWidget = () => {
     return days;
   };
 
-  // const timeSlots = [
-  //   { time: "12AM", period: "night" },
-  //   { time: "1AM", period: "night" },
-  //   { time: "2AM", period: "night" },
-  //   { time: "3AM", period: "night" },
-  //   { time: "4AM", period: "night" },
-  //   { time: "5AM", period: "early" },
-  //   { time: "6AM", period: "morning" },
-  //   { time: "7AM", period: "morning" },
-  // ];
 
   return (
     <div className="bg-gray-900/20 backdrop-blur-md border border-gray-700/30 rounded-2xl p-4 h-full">

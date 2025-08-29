@@ -72,8 +72,8 @@ export class AuthService {
       const result = await response.json();
 
       if (result.success && result.data?.user) {
-        console.log("Token verification successful, user data:", result.data.user);
-        console.log("User profile picture from backend:", result.data.user.picture);
+        // console.log("Token verification successful, user data:", result.data.user);
+        // console.log("User profile picture from backend:", result.data.user.picture);
         this.setUser(result.data.user);
         return true;
       } else {
