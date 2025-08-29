@@ -121,6 +121,7 @@ const CalendarWidget = () => {
           timeout: 10000,
         }
       ); 
+    
 
       if (response.data.success) {
         const fetchedEvents =

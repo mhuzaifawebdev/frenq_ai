@@ -3,16 +3,45 @@
 import React, { useEffect, useState } from 'react';
 import {ListTodo, Plus,Search,Check,X,Edit3,Calendar,Trash2,ChevronDown,ChevronRight,CheckCircle,AlertCircle,Clock,User,ArrowLeft,Minimize2,Maximize2,RefreshCw,Pin,Filter,ArrowUpDown} from 'lucide-react';
 import { AuthService, useAuth } from '../lib/auth';
-import GoogleTasksAPI from '../lib/googleTasksApi';
+import { config } from '../lib/config';
 
 const GoogleTasksWidget = () => {
   // Use auth hook
   const { isAuthenticated, user, loading: authLoading } = useAuth();
 
+  // API utility function
+  const apiCall = async (endpoint, options = {}) => {
+    try {
+      const response = await fetch(`${config.BACKEND_URL}/api/gtasks${endpoint}`, {
+        ...options,
+        headers: {
+          ...AuthService.getAuthHeader(),
+          'Content-Type': 'application/json',
+          ...options.headers,
+        },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || `HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      if (!data.success) {
+        throw new Error(data.message || 'API request failed');
+      }
+
+      return data;
+    } catch (error) {
+      console.error(`API Error [${endpoint}]:`, error);
+      throw error;
+    }
+  };
+
   // Loading and messages
   const [loading, setLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [message, setMessage] = useState(null);
+  const [message, setMessage] = useState(null); 
   const [togglingTasks, setTogglingTasks] = useState(new Set());
   const [loadingTaskLists, setLoadingTaskLists] = useState(false);
 
@@ -142,8 +171,8 @@ const GoogleTasksWidget = () => {
     
     setLoadingTaskLists(true);
     try {
-      const taskLists = await GoogleTasksAPI.getTaskLists();
-      setTaskLists(taskLists);
+      const data = await apiCall('/lists');
+      setTaskLists(data.data.taskLists || []);
     } catch (error) {
       console.error('Fetch task lists error:', error);
       showMessage('error', error.message);
@@ -160,10 +189,12 @@ const GoogleTasksWidget = () => {
     
     setLoadingTaskLists(true);
     try {
-      const newList = await GoogleTasksAPI.createTaskList({
-        title: newListTitle.trim()
+      const data = await apiCall('/lists', {
+        method: 'POST',
+        body: JSON.stringify({ title: newListTitle.trim() }),
       });
       
+      const newList = data.data.taskList;
       showMessage('success', `List "${newList.title}" created successfully`);
       setNewListTitle('');
       setShowCreateListForm(false);
@@ -193,13 +224,16 @@ const GoogleTasksWidget = () => {
     
     setLoading(true);
     try {
-      console.log('Fetching all tasks from list:', tasklistId);
+      console.log('Fetching tasks from list:', tasklistId);
       
-      const allTasks = await GoogleTasksAPI.getAllTasks(tasklistId, {
-        maxResults: 100,
-        showCompleted: true,
-        showHidden: true
+      const params = new URLSearchParams({
+        maxResults: '100',
+        showCompleted: 'true',
+        showHidden: 'true'
       });
+      
+      const data = await apiCall(`/${tasklistId}?${params.toString()}`);
+      const allTasks = data.data.tasks || [];
       
       setTasks(allTasks);
       setSelectedTaskList(tasklistId);
@@ -236,7 +270,11 @@ const GoogleTasksWidget = () => {
         taskData.parent = taskForm.parent;
       }
 
-      await GoogleTasksAPI.createTask(selectedTaskList, taskData);
+      await apiCall(`/${selectedTaskList}`, {
+        method: 'POST',
+        body: JSON.stringify(taskData),
+      });
+      
       showMessage('success', 'Task created successfully');
       setTaskForm({ title: '', notes: '', due: '', parent: '' });
       setShowExpandedTaskForm(false);
@@ -255,7 +293,9 @@ const GoogleTasksWidget = () => {
     setTogglingTasks(prev => new Set(prev).add(taskId));
     
     try {
-      await GoogleTasksAPI.toggleTaskCompletion(selectedTaskList, taskId);
+      await apiCall(`/${selectedTaskList}/${taskId}/toggle`, {
+        method: 'PATCH',
+      });
       fetchTasks(selectedTaskList);
     } catch (error) {
       showMessage('error', error.message);
@@ -274,7 +314,9 @@ const GoogleTasksWidget = () => {
     
     setLoading(true);
     try {
-      await GoogleTasksAPI.deleteTask(selectedTaskList, taskId);
+      await apiCall(`/${selectedTaskList}/${taskId}`, {
+        method: 'DELETE',
+      });
       showMessage('success', 'Task deleted successfully');
       fetchTasks(selectedTaskList);
     } catch (error) {
@@ -289,7 +331,10 @@ const GoogleTasksWidget = () => {
     
     setLoading(true);
     try {
-      await GoogleTasksAPI.updateTask(selectedTaskList, taskId, updateData);
+      await apiCall(`/${selectedTaskList}/${taskId}`, {
+        method: 'PUT',
+        body: JSON.stringify(updateData),
+      });
       showMessage('success', 'Task updated successfully');
       setEditingTask(null);
       fetchTasks(selectedTaskList);
