@@ -135,8 +135,6 @@ class GoogleTasksAPI {
         allTasks = [...allTasks, ...result.tasks];
         nextPageToken = result.nextPageToken;
         pageCount++;
-
-        console.log(`Fetched page ${pageCount}, total tasks: ${allTasks.length}`);
       } catch (error) {
         console.error('Error fetching page:', error);
         break;

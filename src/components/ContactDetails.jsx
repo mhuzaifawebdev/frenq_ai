@@ -21,7 +21,6 @@ const ContactDetails = ({ userData }) => {
     }
     
     if (currentUserData) {
-      console.log('ContactDetails: User data received:', currentUserData);
       setUserInfo({
         email: currentUserData.email || 'No email available',
         name: currentUserData.name || currentUserData.firstName || currentUserData.displayName || 'User'

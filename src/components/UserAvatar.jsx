@@ -5,26 +5,16 @@ import Image from "next/image";
 const UserAvatar = ({ user, size = 56 }) => {
   const [imageError, setImageError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [retryCount, setRetryCount] = useState(0);
-  const maxRetries = 2;
+  // urlStage: 0 = try optimized Google URL, 1 = fallback to original URL, 2 = show initials
+  const [urlStage, setUrlStage] = useState(0);
 
-  // Memoize the image URL to prevent unnecessary re-computations
+  // Compute the raw URL and two-stage optimized URL
+  const rawUrl = useMemo(() => {
+    return user?.profilePicture || user?.picture || null;
+  }, [user?.profilePicture, user?.picture]);
+
   const optimizedImageUrl = useMemo(() => {
-    const rawUrl = user?.profilePicture || user?.picture;
-
-    if (process.env.NODE_ENV === "development") {
-      console.log("UserAvatar: Processing image URL:", rawUrl);
-    }
-
-    if (!rawUrl || typeof rawUrl !== "string") {
-      if (process.env.NODE_ENV === "development") {
-        console.log("UserAvatar: No valid URL provided", {
-          rawUrl,
-          type: typeof rawUrl,
-        });
-      }
-      return null;
-    }
+    if (!rawUrl || typeof rawUrl !== "string") return null;
 
     // Basic URL validation
     try {
@@ -34,53 +24,29 @@ const UserAvatar = ({ user, size = 56 }) => {
       return null;
     }
 
-    // For Google profile images, ensure we're using the right size parameter
-    if (rawUrl.includes("googleusercontent.com")) {
-      // Remove any existing size parameters and add our own
+    if (urlStage === 0 && rawUrl.includes("googleusercontent.com")) {
+      // Stage 0: Try size-optimized Google CDN URL
       const baseUrl = rawUrl.split("=")[0];
-      const optimizedUrl = `${baseUrl}=s${size * 2}-c`;
-      if (process.env.NODE_ENV === "development") {
-        console.log(
-          "UserAvatar: Google URL optimized from",
-          rawUrl,
-          "to",
-          optimizedUrl
-        );
-      }
-      return optimizedUrl;
+      return `${baseUrl}=s${size * 2}-c`;
     }
 
-    if (process.env.NODE_ENV === "development") {
-      console.log("UserAvatar: Using original URL:", rawUrl);
-    }
+    // Stage 1 or non-Google URL: use original URL
     return rawUrl;
-  }, [user?.profilePicture, user?.picture, size]);
+  }, [rawUrl, size, urlStage]);
 
-  // Reset error state when optimized URL changes
+  // Reset error/stage state when the raw URL changes
   useEffect(() => {
-    if (optimizedImageUrl) {
+    if (rawUrl) {
       setImageError(false);
       setIsLoading(true);
-      setRetryCount(0);
+      setUrlStage(0);
     }
-  }, [optimizedImageUrl]);
+  }, [rawUrl]);
 
-  const handleImageError = (e) => {
-    // Only log in development and use console.warn to avoid Next.js error overlay
-    if (process.env.NODE_ENV === "development") {
-      console.warn("Avatar image failed to load:", {
-        url: optimizedImageUrl,
-        retry: `${retryCount + 1}/${maxRetries}`,
-      });
-    }
-
-    // Try to retry if we haven't exceeded max retries
-    if (retryCount < maxRetries) {
-      setRetryCount((prev) => prev + 1);
-      // Force a re-render by temporarily clearing and setting the image
-      setTimeout(() => {
-        setIsLoading(true);
-      }, 1000);
+  const handleImageError = () => {
+    if (urlStage === 0 && rawUrl?.includes("googleusercontent.com")) {
+      setUrlStage(1);
+      setIsLoading(true);
     } else {
       setImageError(true);
       setIsLoading(false);
@@ -89,24 +55,11 @@ const UserAvatar = ({ user, size = 56 }) => {
 
   const handleImageLoad = () => {
     setIsLoading(false);
-    if (process.env.NODE_ENV === "development") {
-      console.log("Avatar image loaded successfully:", optimizedImageUrl);
-    }
   };
 
-  if (process.env.NODE_ENV === "development") {
-    console.log("UserAvatar: Render state:", {
-      hasUser: !!user,
-      userPicture: user?.picture,
-      profilePicture: user?.profilePicture,
-      optimizedUrl: optimizedImageUrl,
-      imageError,
-      isLoading,
-    });
-  }
 
-  // If no picture or image failed to load, show initials
-  if (!optimizedImageUrl || (imageError && retryCount >= maxRetries)) {
+  // If no picture or all URL stages exhausted, show initials
+  if (!rawUrl || (imageError && urlStage >= 1)) {
     return (
       <div
         className="bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center shadow-lg ring-2 ring-gray-700/50"
@@ -132,7 +85,7 @@ const UserAvatar = ({ user, size = 56 }) => {
         </div>
       )}
       <Image
-        key={`avatar-${optimizedImageUrl}-${retryCount}`}
+        key={`avatar-${optimizedImageUrl}-${urlStage}`}
         src={optimizedImageUrl}
         alt={user?.name || user?.email || "User"}
         width={size}
@@ -142,6 +95,7 @@ const UserAvatar = ({ user, size = 56 }) => {
         }`}
         onError={handleImageError}
         onLoad={handleImageLoad}
+        referrerPolicy="no-referrer"
         priority
         unoptimized // Bypass Next.js optimization for external images
       />

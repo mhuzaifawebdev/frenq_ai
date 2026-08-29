@@ -36,16 +36,6 @@ const Dashboard = () => {
         if (isValid) {
           setIsAuthenticated(true);
           const userData = AuthService.getUser();
-          console.log("Dashboard: User data loaded:", userData);
-          console.log(
-            "Dashboard: Profile picture URL:",
-            userData?.profilePicture
-          );
-          console.log("Dashboard: Picture field (legacy):", userData?.picture);
-          console.log(
-            "Dashboard: User object keys:",
-            userData ? Object.keys(userData) : "No user data"
-          );
           setUser(userData);
         } else {
           // Invalid token, redirect to home

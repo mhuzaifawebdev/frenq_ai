@@ -68,10 +68,7 @@ const GoogleTasksWidget = () => {
       
       // Enhanced logic for task list dropdown
       const isInsideDropdown = e.target.closest('.tasklist-dropdown-root');
-      console.log('Click outside handler:', { isInsideDropdown: !!isInsideDropdown, target: e.target }); // Debug log
-      
       if (!isInsideDropdown) {
-        console.log('Closing dropdown from outside click'); // Debug log
         // Use setTimeout to avoid state conflicts
         setTimeout(() => {
           setShowTaskListDropdown(false);
@@ -193,8 +190,6 @@ const GoogleTasksWidget = () => {
     
     setLoading(true);
     try {
-      console.log('Fetching all tasks from list:', tasklistId);
-      
       const allTasks = await GoogleTasksAPI.getAllTasks(tasklistId, {
         maxResults: 100,
         showCompleted: true,
@@ -527,7 +522,6 @@ const GoogleTasksWidget = () => {
                         onMouseDown={(e) => {
                           e.preventDefault();
                           e.stopPropagation();
-                          console.log('Create New List button clicked'); // Debug log
                           setShowCreateListForm(true);
                         }}
                         className="w-full text-left px-3 py-2 text-sm text-blue-400 hover:bg-gray-700 transition-colors flex items-center gap-2"

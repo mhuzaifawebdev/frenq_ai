@@ -45,30 +45,8 @@ const CalendarWidget = () => {
   const selectedDateEvents = useMemo(() => {
     const filteredEvents = events.filter((event) => {
       const eventDate = new Date(event.start?.dateTime || event.start?.date);
-      const matches = eventDate.toDateString() === selectedDate.toDateString();
-
-      if (process.env.NODE_ENV === "development") {
-        console.log(
-          "Event date:",
-          eventDate.toDateString(),
-          "Selected date:",
-          selectedDate.toDateString(),
-          "Matches:",
-          matches
-        );
-      }
-
-      return matches;
+      return eventDate.toDateString() === selectedDate.toDateString();
     });
-
-    if (process.env.NODE_ENV === "development") {
-      console.log(
-        "Memoized selected date events:",
-        filteredEvents.length,
-        "for date:",
-        selectedDate.toDateString()
-      );
-    }
 
     return filteredEvents;
   }, [events, selectedDate]);
@@ -82,8 +60,9 @@ const CalendarWidget = () => {
     setTimeout(() => setMessage({ type: "", text: "" }), 5000);
   };
 
-  const fetchEvents = async (isManualRefresh = false) => {
+  const fetchEvents = async (isManualRefresh = false, retryAttempt = 0) => {
     const token = AuthService.getToken();
+    const maxRetries = 2;
 
     if (!token) {
       showMessage("error", "Please login first");
@@ -118,7 +97,7 @@ const CalendarWidget = () => {
         )}&timeMax=${encodeURIComponent(timeMax)}`,
         {
           headers: { Authorization: `Bearer ${token}` },
-          timeout: 10000,
+          timeout: 30000, // 30 second timeout — allows for slow Google API handshake on fresh logins
         }
       );
 
@@ -153,8 +132,14 @@ const CalendarWidget = () => {
           "error",
           "Calendar access not authorized. Please reconnect your Google account."
         );
-      } else if (error.code === "ECONNABORTED") {
-        showMessage("error", "Request timeout. Please try again.");
+      } else if (error.code === "ECONNABORTED" || error.code === "ERR_NETWORK") {
+        // Retry on transient timeouts/network errors (common on fresh logins while Google OAuth tokens are refreshing)
+        if (retryAttempt < maxRetries) {
+          const delay = 1500 * (retryAttempt + 1); // 1.5s, 3s
+          setTimeout(() => fetchEvents(isManualRefresh, retryAttempt + 1), delay);
+          return; // Skip finally's setLoading(false) so loading stays active during retry
+        }
+        showMessage("error", "Calendar request timed out. Please try refreshing.");
       } else {
         const errorMsg =
           error.response?.data?.message ||

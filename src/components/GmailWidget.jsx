@@ -34,8 +34,9 @@ const GmailWidget = () => {
     setTimeout(() => setMessage({ type: "", text: "" }), 5000);
   };
 
-  const fetchEmails = async () => {
+  const fetchEmails = async (retryAttempt = 0) => {
     const token = AuthService.getToken();
+    const maxRetries = 2;
 
     if (!token) {
       showMessage("error", "Please login first");
@@ -52,7 +53,7 @@ const GmailWidget = () => {
         `${API_BASE}/api/gmail/emails?maxResults=10`,
         {
           headers: { Authorization: `Bearer ${token}` },
-          timeout: 10000, // 10 second timeout
+          timeout: 30000, // 30 second timeout — allows for slow Google API handshake on fresh logins
         }
       );
 
@@ -81,8 +82,17 @@ const GmailWidget = () => {
           "Gmail access not authorized. Please reconnect your Google account."
         );
         setViewMode("external");
-      } else if (error.code === "ECONNABORTED") {
-        showMessage("error", "Request timeout. Please try again.");
+      } else if (error.code === "ECONNABORTED" || error.code === "ERR_NETWORK") {
+        // Retry on transient timeouts/network errors (common on fresh logins while Google OAuth tokens are refreshing)
+        if (retryAttempt < maxRetries) {
+          const delay = 1500 * (retryAttempt + 1); // 1.5s, 3s
+          showMessage("info", `Connecting to Gmail... (attempt ${retryAttempt + 2}/${maxRetries + 1})`);
+          setLoading(true);
+          setRefreshing(true);
+          setTimeout(() => fetchEmails(retryAttempt + 1), delay);
+          return; // Skip finally's setLoading(false) so loading stays active during retry
+        }
+        showMessage("error", "Gmail request timed out. Please try refreshing.");
         setViewMode("external");
       } else {
         const errorMsg =
@@ -119,13 +129,11 @@ const GmailWidget = () => {
       // Handle ISO string or other string formats
       date = new Date(dateString);
     } else {
-      console.warn("Invalid date format:", dateString, typeof dateString);
       return "Unknown";
     }
 
     // Check if date is valid
     if (isNaN(date.getTime())) {
-      console.warn("Invalid date created from:", dateString);
       return "Unknown";
     }
 
