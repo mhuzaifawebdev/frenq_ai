@@ -136,6 +136,35 @@ const ChatAssistance = () => {
   const messagesContainerRef = useRef(null);
   const textareaRef = useRef(null);
 
+  // ── Vertical resize state & refs ─────────────────────────────────────────────
+  const MIN_HEIGHT = 320;
+  const MAX_HEIGHT = typeof window !== "undefined" ? Math.floor(window.innerHeight * 0.92) : 900;
+  const [panelHeight, setPanelHeight] = useState(typeof window !== "undefined" ? Math.min(700, window.innerHeight - 60) : 700);
+  const dragState = useRef({ active: false, startY: 0, startHeight: 0 });
+
+  const onResizeMouseDown = useCallback((e) => {
+    e.preventDefault();
+    dragState.current = { active: true, startY: e.clientY, startHeight: panelHeight };
+    document.body.classList.add("select-none");
+
+    const onMouseMove = (ev) => {
+      if (!dragState.current.active) return;
+      const delta = ev.clientY - dragState.current.startY;
+      const next = Math.min(Math.max(dragState.current.startHeight + delta, MIN_HEIGHT), Math.floor(window.innerHeight * 0.92));
+      setPanelHeight(next);
+    };
+
+    const onMouseUp = () => {
+      dragState.current.active = false;
+      document.body.classList.remove("select-none");
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", onMouseUp);
+    };
+
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", onMouseUp);
+  }, [panelHeight]);
+
   const scrollToBottom = useCallback((behavior = "smooth") => {
     const el = messagesContainerRef.current;
     if (!el) return;
@@ -372,7 +401,10 @@ const ChatAssistance = () => {
 
   // ── Render ────────────────────────────────────────────────────────────────────
   return (
-    <div className="flex h-screen bg-[#1c1c1c]/50 backdrop-blur-md border border-gray-700/30 rounded-2xl overflow-hidden text-white relative">
+    <div
+      className="flex bg-[#1c1c1c]/50 backdrop-blur-md border border-gray-700/30 rounded-2xl overflow-hidden text-white relative"
+      style={{ height: panelHeight }}
+    >
 
       {/* ══ History Sidebar ══════════════════════════════════════════════════════ */}
       <div
@@ -671,6 +703,20 @@ const ChatAssistance = () => {
             </div>
           )}
         </div>
+      </div>
+
+      {/* ── Vertical resize handle ── */}
+      <div
+        onMouseDown={onResizeMouseDown}
+        className="absolute bottom-0 right-0 w-6 h-6 cursor-ns-resize z-30 flex items-end justify-end pr-1 pb-1 group"
+        title="Drag to resize"
+      >
+        {/* Grip dots */}
+        <svg width="10" height="10" viewBox="0 0 10 10" className="text-gray-600 group-hover:text-gray-400 transition-colors">
+          <circle cx="8" cy="8" r="1.2" fill="currentColor" />
+          <circle cx="5" cy="8" r="1.2" fill="currentColor" />
+          <circle cx="8" cy="5" r="1.2" fill="currentColor" />
+        </svg>
       </div>
 
       <style jsx>{`
