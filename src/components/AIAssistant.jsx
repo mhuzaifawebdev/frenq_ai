@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
 import { ChevronLeft, Menu, Send, Mic, Paperclip } from "lucide-react";
+import Image from "next/image";
 
 // Configuration for the AI webhook
 const AI_WEBHOOK_URL = process.env.NEXT_PUBLIC_AI_WEBHOOK_URL;
@@ -247,15 +248,19 @@ const ChatAssistance = () => {
     <div className="flex flex-col h-screen bg-[#1c1c1c]/50 backdrop-blur-md border border-gray-700/30 rounded-2xl hover:bg-[#1c1c1c]/30 transition-all duration-300 text-white">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b rounded-t-2xl border-gray-800 bg-gray-900 ">
-        <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-            <span className="text-white text-sm font-bold">AI</span>
+        <div className="flex items-center space-x-1">
+          <div className="w-10 h-10 flex items-center justify-center">
+            {/* <span className="text-white text-sm font-bold">AI</span> */}
+            <Image
+              src="/images/frenq-f.png"
+              alt="AI Logo"
+              width={30}
+              height={30}
+              className="max-h-[50px]!"
+            />
           </div>
           <div>
             <h1 className="text-lg font-medium">AI Task Assistant</h1>
-            <p className="text-xs text-gray-400">
-              I can help you with calendar events, emails, calls, and more
-            </p>
           </div>
         </div>
         <div className="flex items-center space-x-2">
@@ -271,15 +276,21 @@ const ChatAssistance = () => {
       <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4">
         {messages.length === 0 && (
           <div className="flex flex-col items-center justify-center h-full text-center space-y-4">
-            <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mb-4">
-              <span className="text-white text-2xl font-bold">AI</span>
+            <div className="w-16 h-16 bg-gradient-to-r from-black to-purple-500 rounded-full flex items-center justify-center mb-4">
+              <Image
+                src="/images/frenq-f.png"
+                alt="AI Logo"
+                width={50}
+                height={50}
+                className="max-h-[50px]! pl-[5px]"
+              />
             </div>
             <h3 className="text-xl font-semibold text-white">
               How can I help you today?
             </h3>
             <p className="text-gray-400 max-w-md">
-              I can help you with calendar events, send emails, make calls,
-              manage tasks, and much more. Just tell me what you need!
+              I can help you with calendar events, send emails manage tasks.
+              Just tell me what you need!
             </p>
             <div className="grid grid-cols-1 gap-2 w-full max-w-md mt-6">
               <button

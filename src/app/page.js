@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
+import Image from "next/image";
 
 export default function SkylineApp() {
   const [currentView, setCurrentView] = useState("homepage"); // 'homepage', 'auth'
@@ -317,16 +318,12 @@ export default function SkylineApp() {
           <div className="flex items-center justify-between relative z-10">
             {/* Logo Section */}
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-[#1c1c1c]/70 border border-gray-700/50 rounded-xl flex items-center justify-center">
-                <svg
-                  className="w-6 h-6 text-white"
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-                </svg>
-              </div>
-              <span className="text-white text-xl font-semibold">FrenqAI</span>
+              <Image
+                src="/images/logo.png"
+                alt="FrenqAI Logo"
+                width={150}
+                height={150}
+              />
             </div>
 
             {/* Get Started Button */}
