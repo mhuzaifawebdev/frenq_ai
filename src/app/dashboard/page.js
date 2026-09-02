@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import ContactDetails from "../../components/ContactDetails";
 import TodoList from "../../components/TodoList";
@@ -10,7 +10,7 @@ import AIAssistant from "../../components/AIAssistant";
 import UserAvatar from "@/components/UserAvatar";
 import { AuthService } from "../../lib/auth";
 
-const Dashboard = () => {
+const DashboardContent = () => {
   const searchParams = useSearchParams();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
@@ -179,5 +179,10 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
-
+export default function Dashboard() {
+  return (
+    <Suspense fallback={null}>
+      <DashboardContent />
+    </Suspense>
+  );
+}

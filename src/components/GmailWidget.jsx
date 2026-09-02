@@ -260,7 +260,7 @@ const GmailWidget = () => {
     }
 
     return (
-      <div className="space-y-1 max-h-[320px] overflow-y-auto custom-scrollbar">
+      <div className="space-y-1 max-h-[320px] overflow-y-auto pr-1 custom-scrollbar">
         {emails.slice(0, 10).map((email, index) => {
           // Handle different email data structures and date formats
           let emailDate =
@@ -430,7 +430,12 @@ const GmailWidget = () => {
       {viewMode === "list" ? renderEmailList() : renderExternalView()}
       {viewMode === "list" && renderFooter()}
 
+      {/* Custom Scrollbar Styles */}
       <style jsx>{`
+        .custom-scrollbar {
+          scrollbar-width: thin;
+          scrollbar-color: rgba(156, 163, 175, 0.5) rgba(55, 65, 81, 0.3);
+        }
         .custom-scrollbar::-webkit-scrollbar {
           width: 4px;
         }
@@ -444,6 +449,9 @@ const GmailWidget = () => {
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
           background: rgba(156, 163, 175, 0.7);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:active {
+          background: rgba(156, 163, 175, 0.9);
         }
       `}</style>
     </div>

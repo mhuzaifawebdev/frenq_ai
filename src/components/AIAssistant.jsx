@@ -116,6 +116,99 @@ const TypingIndicator = () => (
   </div>
 );
 
+// ─── Markdown renderer ───────────────────────────────────────────────────────
+
+function renderMarkdown(text) {
+  if (!text) return null;
+
+  const lines = text.split("\n");
+  const elements = [];
+  let listItems = [];
+  let key = 0;
+
+  const flushList = () => {
+    if (listItems.length > 0) {
+      elements.push(
+        <ol key={key++} className="list-none space-y-2 my-3">
+          {listItems.map((item, i) => (
+            <li key={i} className="flex gap-2.5">
+              <span className="flex-shrink-0 w-5 h-5 rounded-full bg-purple-500/20 border border-purple-500/40 text-purple-300 text-[10px] font-bold flex items-center justify-center mt-0.5">
+                {item.num}
+              </span>
+              <span className="flex-1">{renderInline(item.content)}</span>
+            </li>
+          ))}
+        </ol>
+      );
+      listItems = [];
+    }
+  };
+
+  for (const line of lines) {
+    // Numbered list: "1. text"
+    const numMatch = line.match(/^(\d+)\.\s+(.+)/);
+    if (numMatch) {
+      listItems.push({ num: numMatch[1], content: numMatch[2] });
+      continue;
+    }
+    // Bullet list: "- text" or "* text"
+    const bulletMatch = line.match(/^[-*]\s+(.+)/);
+    if (bulletMatch) {
+      listItems.push({ num: "•", content: bulletMatch[1] });
+      continue;
+    }
+
+    flushList();
+
+    if (line.trim() === "") {
+      elements.push(<div key={key++} className="h-2" />);
+    } else {
+      elements.push(<p key={key++} className="leading-relaxed">{renderInline(line)}</p>);
+    }
+  }
+
+  flushList();
+  return <div className="space-y-1">{elements}</div>;
+}
+
+function renderInline(text) {
+  // Split on **bold** and [link](url)
+  const parts = [];
+  const re = /(\*\*(.+?)\*\*)|\[(.+?)\]\((.+?)\)/g;
+  let last = 0;
+  let m;
+  let k = 0;
+
+  while ((m = re.exec(text)) !== null) {
+    if (m.index > last) parts.push(<span key={k++}>{text.slice(last, m.index)}</span>);
+
+    if (m[1]) {
+      // Bold
+      parts.push(<strong key={k++} className="text-white font-semibold">{m[2]}</strong>);
+    } else {
+      // Link
+      parts.push(
+        <a
+          key={k++}
+          href={m[4]}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1 text-blue-400 hover:text-blue-300 underline underline-offset-2 transition-colors"
+        >
+          {m[3]}
+          <svg className="w-3 h-3 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+          </svg>
+        </a>
+      );
+    }
+    last = m.index + m[0].length;
+  }
+
+  if (last < text.length) parts.push(<span key={k++}>{text.slice(last)}</span>);
+  return parts.length > 0 ? parts : text;
+}
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 const ChatAssistance = () => {
@@ -408,9 +501,8 @@ const ChatAssistance = () => {
 
       {/* ══ History Sidebar ══════════════════════════════════════════════════════ */}
       <div
-        className={`absolute inset-y-0 left-0 z-20 flex flex-col w-72 bg-gray-900/97 backdrop-blur-md border-r border-gray-700/50 transform transition-transform duration-300 ease-in-out ${
-          showSidebar ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`absolute inset-y-0 left-0 z-20 flex flex-col w-72 bg-gray-900/97 backdrop-blur-md border-r border-gray-700/50 transform transition-transform duration-300 ease-in-out ${showSidebar ? "translate-x-0" : "-translate-x-full"
+          }`}
       >
         {/* Sidebar header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-700/50 flex-shrink-0">
@@ -450,11 +542,10 @@ const ChatAssistance = () => {
               <div
                 key={conv._id}
                 onClick={() => handleLoadConversation(conv._id)}
-                className={`group flex items-center gap-2 px-3 py-2.5 mx-2 rounded-xl cursor-pointer transition-colors hover:bg-gray-700/50 ${
-                  conversationId === conv._id
+                className={`group flex items-center gap-2 px-3 py-2.5 mx-2 rounded-xl cursor-pointer transition-colors hover:bg-gray-700/50 ${conversationId === conv._id
                     ? "bg-gray-700/60 border border-gray-600/40"
                     : ""
-                }`}
+                  }`}
               >
                 <div className="flex-1 min-w-0">
                   <p className="text-sm text-gray-200 truncate">
@@ -499,14 +590,14 @@ const ChatAssistance = () => {
 
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b rounded-t-2xl border-gray-800 bg-gray-900 flex-shrink-0">
-          <div className="flex items-center space-x-1">
-            <div className="w-10 h-10 flex items-center justify-center">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 rounded-full overflow-hidden bg-gradient-to-br from-[#1a0030] to-[#6d28d9] flex items-center justify-center flex-shrink-0 ring-2 ring-purple-500/30">
               <Image
                 src="/images/frenq-f.png"
                 alt="AI Logo"
-                width={30}
-                height={30}
-                className="max-h-[50px]!"
+                width={28}
+                height={28}
+                className="object-contain"
               />
             </div>
             <div>
@@ -565,24 +656,40 @@ const ChatAssistance = () => {
         <div ref={messagesContainerRef} className="flex-1 overflow-y-auto px-4 py-6 custom-scrollbar">
           {/* Empty state */}
           {messages.length === 0 && (
-            <div className="flex flex-col items-center justify-center h-full text-center space-y-4">
-              <div className="w-16 h-16 bg-gradient-to-r from-black to-purple-500 rounded-full flex items-center justify-center mb-4">
-                <Image
-                  src="/images/frenq-f.png"
-                  alt="AI Logo"
-                  width={50}
-                  height={50}
-                  className="max-h-[50px]! pl-[5px]"
+            <div className="flex flex-col items-center justify-start h-full text-center px-6 pt-8 pb-6 gap-5">
+              {/* Animated circular logo */}
+              <div className="relative">
+                <div
+                  className="w-16 h-16 rounded-full bg-gradient-to-br from-[#1a0030] via-[#3b0764] to-[#6d28d9] flex items-center justify-center shadow-2xl"
+                  style={{ boxShadow: '0 0 28px rgba(109,40,217,0.45), 0 0 56px rgba(109,40,217,0.15)' }}
+                >
+                  <Image
+                    src="/images/frenq-f.png"
+                    alt="AI Logo"
+                    width={36}
+                    height={36}
+                    className="object-contain"
+                  />
+                </div>
+                {/* Outer pulse ring */}
+                <div
+                  className="absolute inset-0 rounded-full border-2 border-purple-500/30 animate-ping"
+                  style={{ animationDuration: '2.5s' }}
                 />
               </div>
-              <h3 className="text-xl font-semibold text-white">
-                How can I help you today?
-              </h3>
-              <p className="text-gray-400 max-w-md">
-                I can schedule meetings, send emails, manage your tasks and
-                more. Just tell me what you need!
-              </p>
-              <div className="grid grid-cols-1 gap-2 w-full max-w-md mt-6">
+
+              {/* Heading + subtitle */}
+              <div className="space-y-3 max-w-xs">
+                <h3 className="text-2xl font-semibold text-white tracking-tight">
+                  How can I help you today?
+                </h3>
+                <p className="text-gray-400 text-sm leading-relaxed">
+                  I can schedule meetings, send emails, manage your tasks and more. Just tell me what you need!
+                </p>
+              </div>
+
+              {/* Suggestion pills */}
+              <div className="grid grid-cols-2 gap-2.5 w-full max-w-sm">
                 {SUGGESTIONS.map(({ icon, label, prompt }) => (
                   <button
                     key={label}
@@ -590,18 +697,19 @@ const ChatAssistance = () => {
                       setInputValue(prompt);
                       textareaRef.current?.focus();
                     }}
-                    className="text-left bg-gray-800/50 hover:bg-gray-700/50 p-3 rounded-lg border border-gray-700/30 transition-colors"
+                    className="text-left bg-gray-800/50 hover:bg-gray-700/60 p-3.5 rounded-xl border border-gray-700/40 transition-all duration-200 hover:border-purple-500/30 hover:scale-[1.02]"
                   >
-                    <div className="text-sm text-white">
+                    <div className="text-sm font-medium text-white mb-1">
                       {icon} {label}
                     </div>
-                    <div className="text-xs text-gray-400 mt-0.5">
+                    <div className="text-[11px] text-gray-500 line-clamp-2 leading-relaxed">
                       &ldquo;{prompt}&rdquo;
                     </div>
                   </button>
                 ))}
               </div>
             </div>
+
           )}
 
           {/* Message bubbles */}
@@ -610,33 +718,31 @@ const ChatAssistance = () => {
             return (
               <div
                 key={msg.id}
-                className={`flex flex-col ${
-                  isUser ? "items-end" : "items-start"
-                } mb-5 animate-fade-in`}
+                className={`flex flex-col ${isUser ? "items-end" : "items-start"
+                  } mb-5 animate-fade-in`}
               >
                 <div
-                  className={`max-w-xs sm:max-w-md lg:max-w-lg xl:max-w-xl ${
-                    isUser ? "order-2" : "order-1"
-                  }`}
+                  className={`max-w-[85%] sm:max-w-lg lg:max-w-xl xl:max-w-2xl ${isUser ? "order-2" : "order-1"
+                    }`}
                 >
                   <div
-                    className={`px-4 py-3 rounded-2xl text-sm leading-relaxed ${
-                      isUser
+                    className={`px-4 py-3 rounded-2xl text-sm leading-relaxed ${isUser
                         ? "bg-blue-600 text-white rounded-br-md"
-                        : "bg-gray-800 text-gray-100 rounded-bl-md"
-                    }`}
+                        : "bg-gray-800/90 text-gray-100 rounded-bl-md"
+                      }`}
                   >
-                    <div className="whitespace-pre-wrap break-words">
-                      {renderContent(msg.content)}
-                    </div>
+                    {isUser ? (
+                      <div className="whitespace-pre-wrap break-words">{msg.content}</div>
+                    ) : (
+                      renderMarkdown(msg.content)
+                    )}
                   </div>
                   {/* Action chips only for assistant messages */}
                   {!isUser && <ActionChips actions={msg.actions} />}
                 </div>
                 <div
-                  className={`text-xs text-gray-500 mt-1 ${
-                    isUser ? "order-1 mr-2" : "order-2 ml-2"
-                  }`}
+                  className={`text-xs text-gray-500 mt-1 ${isUser ? "order-1 mr-2" : "order-2 ml-2"
+                    }`}
                 >
                   {msg.timestamp}
                 </div>
@@ -660,7 +766,7 @@ const ChatAssistance = () => {
               onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={handleKeyPress}
               placeholder={
-                isTyping ? "processing..." : "Ask me to schedule, email, or manage tasks"
+                isTyping ? "processing..." : "Ask me to manage your work"
               }
               disabled={isTyping}
               rows={1}
@@ -675,11 +781,10 @@ const ChatAssistance = () => {
             <button
               onClick={handleSendMessage}
               disabled={!inputValue.trim() || isTyping}
-              className={`p-1.5 rounded-full transition-all duration-200 flex-shrink-0 ${
-                inputValue.trim() && !isTyping
+              className={`p-1.5 rounded-full transition-all duration-200 flex-shrink-0 ${inputValue.trim() && !isTyping
                   ? "bg-blue-600 hover:bg-blue-500 text-white"
                   : "bg-gray-700/50 text-gray-600 cursor-not-allowed"
-              }`}
+                }`}
             >
               {isTyping ? (
                 <div className="w-3.5 h-3.5 border border-gray-400 border-t-transparent rounded-full animate-spin" />
